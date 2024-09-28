@@ -8,12 +8,12 @@ type UIOutput interface {
 
 // UIInput 用户交互界面输入源
 type UIInput interface {
-	// SetReceiveChan 设置接收输入操作的 channel
-	SetReceiveChan(chan<- Operation)
+	// StartReceiving 开始接收操作，并将操作输入到 ch
+	StartReceiving(ch chan<- Operation)
 }
 
 // Operation 菜单操作
-// NOTE: 以下各成员必须指定且仅可指定其中一项
+// NOTE: 以下各成员仅可指定其中一项
 type Operation struct {
 	// 选择下或上 n 项操作
 	NextN *NextN

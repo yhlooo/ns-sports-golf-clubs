@@ -1,9 +1,13 @@
 package menu
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 // Menu 菜单
 type Menu struct {
+	lock   sync.RWMutex
 	root   *Item
 	cursor uint32
 
@@ -14,8 +18,12 @@ type Menu struct {
 
 // AddItems 添加菜单项
 func (m *Menu) AddItems(items ...*Item) {
-	m.root = &Item{}
+	m.lock.Lock()
+	if m.root == nil {
+		m.root = &Item{}
+	}
 	m.root.AddSubItems(items...)
+	m.lock.Unlock()
 	m.Show()
 }
 
@@ -36,7 +44,7 @@ func (m *Menu) HandleInputs(ctx context.Context) {
 		m.operationChan = make(chan Operation)
 	}
 	for _, input := range m.inputs {
-		input.SetReceiveChan(m.operationChan)
+		input.StartReceiving(m.operationChan)
 	}
 	for {
 		select {
@@ -57,6 +65,8 @@ func (m *Menu) HandleInputs(ctx context.Context) {
 
 // Show 显示菜单
 func (m *Menu) Show() {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
 	for _, output := range m.outputs {
 		output.Show(m)
 	}
@@ -64,22 +74,27 @@ func (m *Menu) Show() {
 
 // NextN 选择下 n 项，若 n 是负数表示上 -n 项
 func (m *Menu) NextN(n int32) {
+	m.lock.Lock()
 	if n < 0 {
 		m.cursor -= uint32(-n)
 	} else {
 		m.cursor += uint32(n)
 	}
+	m.lock.Unlock()
 	m.Show()
 }
 
 // Enter 进入当前项
 func (m *Menu) Enter() {
+	m.lock.Lock()
 	if m.root == nil || len(m.root.children) == 0 {
+		m.lock.Unlock()
 		return
 	}
 	i := m.cursor % uint32(len(m.root.children))
 	m.root = m.root.children[i]
 	m.cursor = 0
+	m.lock.Unlock()
 	if m.root.Run != nil {
 		m.root.Run(m)
 	}
@@ -88,16 +103,21 @@ func (m *Menu) Enter() {
 
 // Back 返回
 func (m *Menu) Back() {
+	m.lock.Lock()
 	if m.root == nil || m.root.parent == nil {
+		m.lock.Unlock()
 		return
 	}
 	m.root = m.root.parent
 	m.cursor = 0
+	m.lock.Unlock()
 	m.Show()
 }
 
 // ItemNames 返回选项名和当前所选项序号
 func (m *Menu) ItemNames() (names []string, selected uint32) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
 	if m.root == nil || len(m.root.children) == 0 {
 		return
 	}
@@ -120,9 +140,24 @@ type Item struct {
 }
 
 // AddSubItems 添加子项
-func (item *Item) AddSubItems(items ...*Item) {
+func (item *Item) AddSubItems(items ...*Item) *Item {
 	for _, subItem := range items {
 		subItem.parent = item
 		item.children = append(item.children, subItem)
 	}
+	return item
+}
+
+// BackItem 返回上一级菜单选项
+func BackItem(name string) *Item {
+	if name == "" {
+		name = "Back"
+	}
+	return &Item{Name: name, Run: BackFn}
+}
+
+// BackFn 返回上一级菜单
+func BackFn(m *Menu) {
+	m.Back()
+	m.Back()
 }
