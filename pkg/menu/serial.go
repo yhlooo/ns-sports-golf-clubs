@@ -20,7 +20,7 @@ func (s *Serial) Show(m *Menu) {
 	content := "\x1b[100A\x1b[100D\x1b[2J"
 	items, selected := m.ItemNames()
 	for i, item := range items {
-		if uint32(i) == selected {
+		if int32(i) == selected {
 			content += "\x1b[7m" + item + "\x1b[0m\r\n"
 		} else {
 			content += item + "\r\n"

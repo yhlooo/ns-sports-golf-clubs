@@ -51,6 +51,16 @@ func (g *GraphicsDisplay) Show(m *Menu) {
 	midLineY := (height - lineHeight) / 2
 
 	names, selected := m.ItemNames()
+	if len(names) == 0 {
+		// 清空屏幕
+		for y := int16(0); y < height; y++ {
+			for x := int16(0); x < width; x++ {
+				g.Display.SetPixel(x+g.X, y+g.Y, g.BackgroundColor)
+			}
+		}
+		_ = g.Display.Display()
+		return
+	}
 
 	// 中间显示选中行
 	for y := midLineY; y < midLineY+lineHeight; y++ {

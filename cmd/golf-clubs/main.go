@@ -54,37 +54,39 @@ func main() {
 	}
 
 	// 初始化菜单
-	m := &menu.Menu{}
-	m.AddItems(
-		(&menu.Item{Name: "1a"}).AddSubItems(
-			menu.BackItem("Back"),
-			(&menu.Item{Name: "full", Run: func(m *menu.Menu) {
-				time.Sleep(10 * time.Second)
-				fmt.Println("full")
-			}}).AddSubItems(
-				menu.BackItem("Back"),
-			),
-			(&menu.Item{Name: "2/3", Run: func(m *menu.Menu) {
-				fmt.Println("2/3")
-			}}).AddSubItems(
-				menu.BackItem("Back"),
-			),
-			(&menu.Item{Name: "1/3", Run: func(m *menu.Menu) {
-				fmt.Println("1/3")
-			}}).AddSubItems(
-				menu.BackItem("Back"),
-			),
-			(&menu.Item{Name: "custom", Run: func(m *menu.Menu) {
-				fmt.Println("custom")
-			}}).AddSubItems(
-				menu.BackItem("Back"),
-			),
-		),
-		(&menu.Item{Name: "2"}).AddSubItems(menu.BackItem("Back")),
-		(&menu.Item{Name: "3"}).AddSubItems(menu.BackItem("Back")),
-		(&menu.Item{Name: "4a"}).AddSubItems(menu.BackItem("Back")),
-		(&menu.Item{Name: "4b"}).AddSubItems(menu.BackItem("Back")),
+	settingsNode := &menu.BaseNode{NodeName: "Settings"}
+	settingsNode.AddChildren(
+		menu.NewBackNode("Back"),
+		menu.NewBoolValueNode("Reverse", false, true, func(reverse bool) {
+			clubs.SetReverse(reverse)
+		}),
 	)
+	root := &menu.BaseNode{NodeName: "Root"}
+	root.AddChildren(
+		&menu.ValueNode{
+			BaseNode: menu.BaseNode{NodeName: "Custom"},
+			FormatValue: func(value int32) string {
+				v := value % 100
+				if v < 0 {
+					v += 100
+				}
+				return strconv.FormatInt(int64(v)+1, 10)
+			},
+			OnEnter: func(node *menu.ValueNode) {
+				speed := node.Value() % 100
+				if speed < 0 {
+					speed += 100
+				}
+				log.Printf("swing at %d speed", speed)
+				clubs.Swing(uint8(speed))
+				log.Printf("swing done")
+			},
+		},
+		settingsNode,
+	)
+	m := &menu.Menu{}
+	m.SetRoot(root)
+
 	serialUI := &menu.Serial{Serial: machine.Serial}
 	encoderUI := &menu.Encoder{
 		Encoder:   enc,
@@ -105,33 +107,6 @@ func main() {
 	m.AddInputs(serialUI, encoderUI)
 
 	m.HandleInputs(context.Background())
-
-	reversed := false
-	for {
-		line := readLine(machine.Serial)
-
-		switch line {
-		case "reverse":
-			reversed = !reversed
-			clubs.SetReverse(reversed)
-		default:
-			speed, err := strconv.ParseInt(line, 10, 8)
-			if err != nil {
-				log.Printf("ERROR parse speed %q error: %v", line, err)
-				continue
-			}
-			if speed <= 0 {
-				log.Printf("swing speed is 0, skipped")
-				continue
-			}
-			if speed >= 100 {
-				speed = 100
-			}
-			log.Printf("swing at %d speed", speed)
-			clubs.Swing(uint8(speed))
-			log.Printf("swing done")
-		}
-	}
 }
 
 func readLine(s machine.Serialer) string {
