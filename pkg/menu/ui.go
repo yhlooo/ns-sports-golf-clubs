@@ -15,9 +15,12 @@ type UIInput interface {
 // Operation 菜单操作
 // NOTE: 以下各成员必须指定且仅可指定其中一项
 type Operation struct {
+	// 选择下或上 n 项操作
 	NextN *NextN
+	// 进入菜单操作
 	Enter *Enter
-	Back  *Back
+	// 返回操作
+	Back *Back
 }
 
 // NextN 选择下或上 n 项操作
