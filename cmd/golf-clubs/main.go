@@ -3,10 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"image/color"
 	"log"
 	"machine"
 	"strconv"
 	"time"
+
+	"tinygo.org/x/drivers/sh1106"
+	"tinygo.org/x/tinyfont/proggy"
 
 	"github.com/yhlooo/ns-sports-golf-clubs/pkg/encoder"
 	"github.com/yhlooo/ns-sports-golf-clubs/pkg/golfclubs"
@@ -16,6 +20,7 @@ import (
 func main() {
 	time.Sleep(2 * time.Second)
 
+	// 初始化高尔夫球杆
 	clubs := golfclubs.New(
 		machine.GPIO2,
 		machine.GPIO3,
@@ -25,6 +30,20 @@ func main() {
 		log.Fatalf("configure golf clubs error: %v", err)
 	}
 
+	// 初始化显示器
+	i2c := machine.I2C1
+	if err := i2c.Configure(machine.I2CConfig{
+		Frequency: 400 * machine.KHz,
+		SDA:       machine.GPIO10,
+		SCL:       machine.GPIO11,
+	}); err != nil {
+		log.Fatalf("configure i2c error: %v", err)
+	}
+	display := sh1106.NewI2C(i2c)
+	display.Configure(sh1106.Config{Width: 128, Height: 32})
+	display.ClearDisplay()
+
+	// 初始化编码器
 	machine.GPIO8.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
 	enc := &encoder.Encoder{
 		APin: machine.GPIO6,
@@ -34,6 +53,7 @@ func main() {
 		log.Fatalf("configure encoder error: %v", err)
 	}
 
+	// 初始化菜单
 	m := &menu.Menu{}
 	m.AddItems(
 		(&menu.Item{Name: "1a"}).AddSubItems(
@@ -70,11 +90,19 @@ func main() {
 		Encoder:   enc,
 		ButtonPin: machine.GPIO8,
 	}
-	m.AddOutputs(serialUI)
-	m.AddInputs(
-		serialUI,
-		encoderUI,
-	)
+	displayUI := &menu.GraphicsDisplay{
+		Display:         &display,
+		Font:            &proggy.TinySZ8pt7b,
+		ForegroundColor: color.RGBA{R: 255, G: 255, B: 255, A: 255},
+		BackgroundColor: color.RGBA{A: 255},
+		PaddingLeft:     1,
+		PaddingTop:      -1,
+		PaddingBottom:   1,
+		Width:           40,
+		Height:          32,
+	}
+	m.AddOutputs(serialUI, displayUI)
+	m.AddInputs(serialUI, encoderUI)
 
 	m.HandleInputs(context.Background())
 
