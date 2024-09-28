@@ -22,7 +22,7 @@ func (e *Encoder) Configure() error {
 	e.APin.Configure(machine.PinConfig{Mode: machine.PinInput})
 	e.BPin.Configure(machine.PinConfig{Mode: machine.PinInput})
 	if err := e.APin.SetInterrupt(machine.PinRising, func(_ machine.Pin) {
-		if e.BPin.Get() == e.Reverse {
+		if e.BPin.Get() != e.Reverse {
 			e.value++
 		} else {
 			e.value--

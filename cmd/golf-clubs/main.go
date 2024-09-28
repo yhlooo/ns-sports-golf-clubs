@@ -27,9 +27,8 @@ func main() {
 
 	machine.GPIO8.Configure(machine.PinConfig{Mode: machine.PinInputPullup})
 	enc := &encoder.Encoder{
-		APin:    machine.GPIO6,
-		BPin:    machine.GPIO7,
-		Reverse: false,
+		APin: machine.GPIO6,
+		BPin: machine.GPIO7,
 	}
 	if err := enc.Configure(); err != nil {
 		log.Fatalf("configure encoder error: %v", err)
