@@ -78,13 +78,15 @@ func main() {
 				if v < 0 {
 					v += 100
 				}
-				return strconv.FormatInt(int64(v)+1, 10)
+				v++
+				return strconv.FormatInt(int64(v), 10)
 			},
 			OnEnter: func(node *menu.ValueNode) {
 				speed := node.Value() % 100
 				if speed < 0 {
 					speed += 100
 				}
+				speed++
 				log.Printf("swing at %d speed", speed)
 				clubs.Swing(uint8(speed))
 				log.Printf("swing done")

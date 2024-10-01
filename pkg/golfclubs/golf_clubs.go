@@ -11,6 +11,8 @@ const (
 	DefaultPulsesPerCircle uint32 = 1600
 	// MaxSpeed 最大挥杆速度（单位： rpm ）
 	MaxSpeed uint32 = 400
+	// minSpeedPercent 最小速度百分比
+	minSpeedPercent uint8 = 10
 )
 
 // New 创建一个 GolfClubs
@@ -169,20 +171,31 @@ func (c *GolfClubs) Swing(speedPercent uint8) {
 
 	// 向后摆 38% 圈
 	c.setDirBack()
-	c.swingRaw(10, 38)
+	c.swingRaw(minSpeedPercent, 38)
 	c.hold()
 	time.Sleep(time.Second)
 
 	// 挥杆 76% 圈
 	c.setDirFront()
-	c.swingRaw(speedPercent/8, 3)
-	c.swingRaw(speedPercent/4, 3)
-	c.swingRaw(speedPercent/2, 6)
-	c.swingRaw(uint8(uint32(speedPercent)*8/10), 13)
+	c.swingRaw(max(uint8(uint32(speedPercent)*1/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*2/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*3/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*4/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*5/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*6/10), minSpeedPercent), 3)
+	c.swingRaw(max(uint8(uint32(speedPercent)*7/10), minSpeedPercent), 3)
+	c.swingRaw(max(uint8(uint32(speedPercent)*8/10), minSpeedPercent), 4)
+	c.swingRaw(max(uint8(uint32(speedPercent)*9/10), minSpeedPercent), 5)
 	c.swingRaw(speedPercent, 25)
-	c.swingRaw(uint8(uint32(speedPercent)*8/10), 13)
-	c.swingRaw(speedPercent/2, 6)
-	c.swingRaw(speedPercent/4, 6)
+	c.swingRaw(max(uint8(uint32(speedPercent)*9/10), minSpeedPercent), 5)
+	c.swingRaw(max(uint8(uint32(speedPercent)*8/10), minSpeedPercent), 4)
+	c.swingRaw(max(uint8(uint32(speedPercent)*7/10), minSpeedPercent), 3)
+	c.swingRaw(max(uint8(uint32(speedPercent)*6/10), minSpeedPercent), 3)
+	c.swingRaw(max(uint8(uint32(speedPercent)*5/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*4/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*3/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*2/10), minSpeedPercent), 2)
+	c.swingRaw(max(uint8(uint32(speedPercent)*1/10), minSpeedPercent), 2)
 	c.EnPin.High()
 }
 
