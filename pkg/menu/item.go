@@ -10,6 +10,8 @@ type Node interface {
 	Back() Node
 	// Enter 进入当前节点所选项，返回进入后的节点
 	Enter() Node
+	// Entered 返回当前节点被进入后进入的节点
+	Entered() Node
 	// NextN 选择下 n 项，若 n 是负数表示上 -n 项
 	NextN(n int32)
 	// Items 返回当前节点的子项和所选项序号
@@ -55,6 +57,11 @@ func (node *BaseNode) Enter() Node {
 		i += int32(len(node.children))
 	}
 	return node.children[i]
+}
+
+// Entered 返回当前节点被进入后进入的节点
+func (node *BaseNode) Entered() Node {
+	return node
 }
 
 // NextN 选择下 n 项，若 n 是负数表示上 -n 项
@@ -146,6 +153,11 @@ func (node *ValueNode) Enter() Node {
 	return node.Back()
 }
 
+// Entered 返回当前节点被进入后进入的节点
+func (node *ValueNode) Entered() Node {
+	return node
+}
+
 // Items 返回当前节点的子项和所选项序号
 func (node *ValueNode) Items() (names []string, selected int32) {
 	if node.FormatValue != nil {
@@ -190,6 +202,11 @@ func (node *ActionNode) Enter() Node {
 	return node.Back()
 }
 
+// Entered 返回当前节点被进入后进入的节点
+func (node *ActionNode) Entered() Node {
+	return node
+}
+
 // AddChildren 添加子节点
 func (node *ActionNode) AddChildren(_ ...Node) {}
 
@@ -205,10 +222,10 @@ type BackNode struct {
 
 var _ Node = (*BackNode)(nil)
 
-// Enter 进入当前节点，返回进入后的节点
-func (node *BackNode) Enter() Node {
-	// 返回父的父节点
-	return node.Back()
+// Entered 返回当前节点被进入后进入的节点
+func (node *BackNode) Entered() Node {
+	// 返回父节点
+	return node.Back().Back()
 }
 
 // AddChildren 添加子节点

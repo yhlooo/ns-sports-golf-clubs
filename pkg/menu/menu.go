@@ -87,7 +87,7 @@ func (m *Menu) Enter() {
 		m.lock.Unlock()
 		return
 	}
-	m.root = m.root.Enter()
+	m.root = m.root.Enter().Entered()
 	m.lock.Unlock()
 	m.Show()
 }

@@ -63,6 +63,14 @@ func main() {
 	)
 	root := &menu.BaseNode{NodeName: "Root"}
 	root.AddChildren(
+		&menu.BaseNode{NodeName: "Driver"},
+		&menu.BaseNode{NodeName: "Spoon"},
+		&menu.BaseNode{NodeName: "3-Iron"},
+		&menu.BaseNode{NodeName: "5-Iron"},
+		&menu.BaseNode{NodeName: "7-Iron"},
+		&menu.BaseNode{NodeName: "9-Iron"},
+		&menu.BaseNode{NodeName: "Wedge"},
+		&menu.BaseNode{NodeName: "Putter"},
 		&menu.ValueNode{
 			BaseNode: menu.BaseNode{NodeName: "Custom"},
 			FormatValue: func(value int32) string {
