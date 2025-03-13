@@ -2,4 +2,4 @@
 
 **THIS IS STILL WORK IN PROGRESS**
 
-"Nintendo Sports Sports" golf clubs
+"Nintendo Switch Sports" golf clubs
